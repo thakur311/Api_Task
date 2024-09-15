@@ -1,0 +1,88 @@
+]<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixabay Image Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        #gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .image-container {
+            border: 1px solid #ddd;
+            padding: 10px;
+            max-width: 200px;
+        }
+        .image-container img {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Search Images on Pixabay</h1>
+    <input type="text" id="searchQuery" placeholder="Enter search term" />
+    <button id="searchBtn">Search</button>
+
+    <div id="gallery"></div>
+
+    <script>
+        const apiKey = '45996105-b926b5443bb7986fa86bd5803';
+        const gallery = document.getElementById('gallery');
+        function fetchImages(query) {
+            return new Promise((resolve, reject) => {
+                const url = `https://pixabay.com/api/?key=${apiKey}&q=${encodeURIComponent(query)}&image_type=photo&pretty=true`;
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.hits.length > 0) {
+                            resolve(data.hits);
+                        } else {
+                            reject('No images found');
+                        }
+                    })
+                    .catch(error => reject('Fetch error: ' + error.message));
+            });
+        }
+        function displayImages(images) {
+            gallery.innerHTML = '';
+            images.forEach(image => {
+                const imageContainer = document.createElement('div');
+                imageContainer.classList.add('image-container');
+
+                const img = document.createElement('img');
+                img.src = image.webformatURL;
+                img.alt = image.tags;
+
+                imageContainer.appendChild(img);
+                gallery.appendChild(imageContainer);
+            });
+        }
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            const query = document.getElementById('searchQuery').value.trim();
+            if (query) {
+                fetchImages(query)
+                    .then(images => displayImages(images))
+                    .catch(error => {
+                        gallery.innerHTML = `<p>${error}</p>`;
+                    });
+            } else {
+                gallery.innerHTML = '<p>Please enter a search term</p>';
+            }
+        });
+    </script>
+
+</body>
+</html>
